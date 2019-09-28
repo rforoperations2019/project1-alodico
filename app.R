@@ -64,31 +64,28 @@ ui <- fluidPage(
     )
 
 
-# Define server logic required to draw a histogram
+# Define server logic
 server <- function(input, output) {
-
+    #This is filtering the data by the year slider
     newdata <- reactive({CountyData %>% filter(year_num %in% (input$years[1]:input$years[2]))
         })
-    omitted <-reactive({newdata[rowSums(is.na(newdata))>0,]
-    })
-    # newy <- observe({
-    #     print(input$DepVar)
-    # })
-    # obsB <- observe({
-    #     print(input$years[1])
-    #     print(input$years[2])
-    # })
+    
+    #This creates a new data table of omitted rows once omits action button is clicked
+    omitted <-eventReactive(input$omits,{
+        newdata <- CountyData %>% filter(year_num %in% (input$years[1]:input$years[2]))
+        omitbetween <- newdata[rowSums(is.na(newdata))>0,]
+#        omitbetween
+        })      
+
     output$testplot <- renderPlot({
         ggplot(newdata(), aes_string(x=input$IndVar,
                                  y=input$DepVar,
                                  color="target_LAOPR_80")) + geom_point()
-    })
-    observeEvent(input$omits, {
-        #optional table of omitted results
-        output$table <- renderDataTable(omitted,
-                                        options = list(
-                                            pageLength = 5 ))
-    })
+        })
+    
+    output$table <- renderDataTable({
+        omitted()
+        })
 }
 
 # Run the application 

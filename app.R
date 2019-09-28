@@ -44,16 +44,24 @@ ui <- fluidPage(
             selectInput("IndVar", label = h3("Choose Independent Variable"), 
                         choices = list("Opioid Prescription Rate" = "Opioid_Prescribing_Rate2", 
                                        "Long Acting Opioid Prescription Rate" = "Long_Acting_Opioid_Pres2",
-                                       "Binomial Target Variable 80" = "target_LAOPR_80", 
-                                       "Binomial Target Variable 90" = "target_LAOPR_90")
-                        )
+                                       "Overall_Claims",
+                                       "Part_D_Opioid_Prescribers",
+                                       "Part_D_Prescribers",
+                                       "FFS_Beneficiaries",
+                                       "Hospital_Readmission_Rate2")
+                        ),
+            #and clicking this button lets you see a table of the omitted results
+            actionButton("omits", "See table of omitted results")
             ),
         # Show a plot of the generated distribution
         mainPanel(
-            plotOutput("testplot")
+            #This is the output for the scatterplot
+            plotOutput("testplot"),
+            #and the data table  
+            dataTableOutput('table')
         )
     )
-)
+    )
 
 
 # Define server logic required to draw a histogram
@@ -61,6 +69,8 @@ server <- function(input, output) {
 
     newdata <- reactive({CountyData %>% filter(year_num %in% (input$years[1]:input$years[2]))
         })
+    omitted <-reactive({newdata[rowSums(is.na(newdata))>0,]
+    })
     # newy <- observe({
     #     print(input$DepVar)
     # })
@@ -72,6 +82,12 @@ server <- function(input, output) {
         ggplot(newdata(), aes_string(x=input$IndVar,
                                  y=input$DepVar,
                                  color="target_LAOPR_80")) + geom_point()
+    })
+    observeEvent(input$omits, {
+        #optional table of omitted results
+        output$table <- renderDataTable(omitted,
+                                        options = list(
+                                            pageLength = 5 ))
     })
 }
 

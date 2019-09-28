@@ -45,7 +45,8 @@ ui <- fluidPage(
 
         # Show a plot of the generated distribution
         mainPanel(
-           plotOutput("distPlot")
+            plotOutput("distPlot"),
+            plotOutput("testplot")
         )
     )
 )
@@ -60,6 +61,11 @@ server <- function(input, output) {
 
         # draw the histogram with the specified number of bins
         hist(x, breaks = bins, col = 'darkgray', border = 'white')
+    })
+    output$testplot <- renderPlot({
+        ggplot(CountyDataWNames, aes(x=Long_Acting_Opioid_Pres2, 
+                                 y=Opioid_Prescribing_Rate2,
+                                 color=target_LAOPR_80)) + geom_point()
     })
 }
 

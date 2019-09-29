@@ -41,41 +41,46 @@ ui <- dashboardPage(
 #                        min(as.integer(CountyData$year_num)), max = max(as.integer(CountyData$year_num)), value = c(min ,max)
                         ),
             #and this select box lets you choose the dependent variable
-            selectInput("DepVar", label = h3("Choose Dependent Variable"), 
+            selectInput("DepVar", label = h3("Dependent Variable"), 
                         choices = list("Opioid Prescription Rate" = "Opioid_Prescribing_Rate2", 
                                        "Long Acting Opioid Prescription Rate" = "Long_Acting_Opioid_Pres2",
                                        "Binomial Target Variable 80" = "target_LAOPR_80", 
                                        "Binomial Target Variable 90" = "target_LAOPR_90")
                         ),
             #and this select box lets you choose the independent variable
-            selectInput("IndVar", label = h3("Choose Independent Variable"), 
-                        choices = list("Opioid Prescription Rate" = "Opioid_Prescribing_Rate2", 
+            selectInput("IndVar", label = h3("Independent Variable"), 
+                        choices = list("Total Claims" = "Overall_Claims",
+                                       "Opioid Prescription Rate" = "Opioid_Prescribing_Rate2", 
                                        "Long Acting Opioid Prescription Rate" = "Long_Acting_Opioid_Pres2",
-                                       "Overall_Claims",
                                        "Part_D_Opioid_Prescribers",
                                        "Part_D_Prescribers",
                                        "FFS_Beneficiaries",
                                        "Hospital_Readmission_Rate2")
-                        ),
-            #and clicking this button lets you see a table of the omitted results
-            actionButton("omits", "See table of omitted results")
+                        )
             ),
         dashboardBody(
             tabItems(
-                tabItem(tabName = "dashTab", h2("Main Dashboard tab content")),
-                tabItem(tabName = "omitTab", h2("Null omitted tab content")),
-                tabItem(tabName = "summTab", h2("Summary info variable tab content"))
-                ),
-            #This is the output for the scatterplot
-            box(plotOutput("testplot")),
-            #and the data table  
-            box(dataTableOutput('table')),
-            box(gaugeOutput("DVGauge"),
-                width=6,title="Data validity gauge",background ="green"),
-            box(valueBoxOutput("NArows"),
-                width=4, title = "Number of rows with null value", background = "yellow"),
-            box(valueBoxOutput("OKrows"),
-                width=4, title = "Okay rows", background = "blue")
+                tabItem(tabName = "dashTab", h2("Main Dashboard - scatterplot"),
+                        #This is the output for the scatterplot
+                        box(plotOutput("testplot"))                        
+                        ),
+                tabItem(tabName = "omitTab", h2("Null omitted tab content"),
+                        #clicking this button lets you see a table of the omitted results
+                        box(actionButton("omits", "See table of omitted results")),
+                        box(dataTableOutput('table')),
+                        box(gaugeOutput("DVGauge"),
+                            width=4,title="Data validity gauge",background ="green"
+                            ),
+                        box(valueBoxOutput("NArows"),
+                            width=4, title = "Number of rows with null value", background = "yellow"
+                            ),
+                        box(valueBoxOutput("OKrows"),
+                            width=4, title = "Okay rows", background = "blue"
+                            )
+                        ),
+                tabItem(tabName = "summTab", h2("Summary info variable tab content")
+                        )
+                )
             ) 
         )
         

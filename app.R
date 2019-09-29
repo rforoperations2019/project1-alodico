@@ -1,10 +1,13 @@
 #
 # punchlist 
 # 
-# better way to do datatable
-# data validity based on nulls throughout DF, not only for variables viewed
-# break into tabs - scatterplot, validity, summary
-# state filter
+## better way to do datatable
+## data validity based on nulls throughout DF, not only for variables viewed
+## format omit tab layout
+## fix boxplots so they dont scale on outliers, make retty
+# state filter and state tab
+# target variable breakdown toggle checkbox (currently on defalut laopr 80 on plots)
+
 
 
 library(shiny)
@@ -23,22 +26,18 @@ CountyData <- merge(CCFIPS,
 # Define UI for my dashboard
 ui <- dashboardPage(
         dashboardHeader(title = "County Level Opioid Data"),
-        # Sidebar layout default for now 
         dashboardSidebar(
             sidebarMenu(
                 menuItem("Dashboard", tabName = "dashTab", icon = icon("dashboard")),
-                menuItem("Omitted info", icon = icon("th"), tabName = "omitTab",
+                menuItem("Omitted iInfo", icon = icon("th"), tabName = "omitTab",
                          badgeLabel = "watch", badgeColor = "yellow"),
-                menuItem("Summary info", icon = icon("th"), tabName = "summTab",
-                         badgeLabel = "Coming Soon", badgeColor = "red")
+                menuItem("Variable Ranges", icon = icon("th"), tabName = "boxyTab",
+                         badgeLabel = "By Target Variable", badgeColor = "red")
             ),
-                
-            #This is a range slider that allows you to choose which year(s) of data you are looking at
+            #Date range slider that filters years of data viewing
             sliderInput("years",
                         label = "Year range for data:",
                         min =2013, max = 2017, value = c(min,max)
-# min side of slider below only works if its on a whole year integer this way
-#                        min(as.integer(CountyData$year_num)), max = max(as.integer(CountyData$year_num)), value = c(min ,max)
                         ),
             #and this select box lets you choose the dependent variable
             selectInput("DepVar", label = h3("Dependent Variable"), 
@@ -78,7 +77,9 @@ ui <- dashboardPage(
                             width=4, title = "Okay rows", background = "blue"
                             )
                         ),
-                tabItem(tabName = "summTab", h2("Summary info variable tab content")
+                tabItem(tabName = "boxyTab", h2("Range of Dependent and Independent Variables by Target Variable"),
+                        box(plotOutput("boxplotDV")),
+                        box(plotOutput("boxplotIV"))
                         )
                 )
             ) 
@@ -123,6 +124,16 @@ server <- function(input, output) {
     output$OKrows <- renderValueBox({
         partok <- nrow(na.omit(newdata()))
         valueBox(partok)
+    })
+    output$boxplotDV <- renderPlot({
+        ggplot(newdata(), aes_string(x=as.factor(newdata()$target_LAOPR_80),
+                                     y=input$DepVar,
+                                     color="target_LAOPR_80")) + geom_boxplot()
+    })
+    output$boxplotIV <- renderPlot({
+        ggplot(newdata(), aes_string(x=as.factor(newdata()$target_LAOPR_80),
+                                     y=input$IndVar,
+                                     color="target_LAOPR_80")) + geom_boxplot()
     })
 }
 

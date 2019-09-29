@@ -1,11 +1,10 @@
 #
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
+# punchlist 
+# 
+# data validity based on nulls throughout DF, not only for variables viewed
+# data omitNAs
+# break into tabs - scatterplot, validity, summary
+
 
 library(shiny)
 library(ggplot2)
@@ -57,10 +56,13 @@ ui <- dashboardPage(
             #This is the output for the scatterplot
             box(plotOutput("testplot")),
             #and the data table  
-            box(dataTableOutput('table'))
+            box(dataTableOutput('table')),
+            column(6,box(flexdashboard::gaugeOutput("DVGauge"),
+                         width=12,title="Data validity gauge",background ="green")
+                   )
+            )
         )
-    )
-
+    
 # Define server logic
 server <- function(input, output) {
     #This is filtering the data by the year slider
@@ -71,8 +73,10 @@ server <- function(input, output) {
     #I couldnt figure out how to make this work without putting the newdata line from above in here
     omitted <-eventReactive(input$omits,{
         newdata <- CountyData %>% filter(year_num %in% (input$years[1]:input$years[2]))
-        omitbetween <- newdata[rowSums(is.na(newdata))>0,]
-        })      
+        omitbetween <- newdata[rowSums(is.na(newdata))>0,]()
+        })  
+    #reactive expression for gauge bars
+#    partna <- reactive({nrow(omitted())*100/nrow(newdata())})
     #GGplot of the variables 
     output$testplot <- renderPlot({
         ggplot(newdata(), aes_string(x=input$IndVar,
@@ -83,6 +87,14 @@ server <- function(input, output) {
     output$table <- renderDataTable({
         omitted()
         })
+    #data validity gauge
+    output$DVGauge <- renderGauge({
+        percok2 <- as.integer(100*nrow(na.omit(newdata()))/nrow(newdata()))
+        gauge(percok2, min = 0, max = 100, symbol = '%',
+              label = paste("% data w/o nulls in query"),
+              gaugeSectors(success = c(90, 100), warning = c(60,90), danger = c(0, 60))
+        )
+    })
 }
 
 # Run the application 

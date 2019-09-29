@@ -34,7 +34,10 @@ ui <- fluidPage(
                     ),
                 box(title = "null rows",
                     valueBoxOutput("NArows")
-                    )
+                    ),
+                box(title = "Okay rows",
+                    valueBoxOutput("OKrows")
+                )
             )
         )
     )
@@ -70,6 +73,10 @@ server <- function(input, output) {
     output$NArows <- renderValueBox({
         partna <- nrow(newdata()[rowSums(is.na(newdata()))>0,])
         valueBox(partna)
+    })
+    output$OKrows <- renderValueBox({
+        partok <- nrow(na.omit(newdata()))
+        valueBox(partok)
     })
 }
 

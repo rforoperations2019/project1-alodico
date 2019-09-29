@@ -27,9 +27,7 @@ ui <- dashboardPage(
             #This is a range slider that allows you to choose which year(s) of data you are looking at
             sliderInput("years",
                         label = "Include data from year(s):",
-                        min = 2013,
-                        max = 2017,
-                        value = c(2013,2017)
+                        min = 2013, max = 2017, value = c(2013,2017)
                         ),
             #and this select box lets you choose the dependent variable
             selectInput("DepVar", label = h3("Choose Dependent Variable"), 
@@ -57,11 +55,15 @@ ui <- dashboardPage(
             box(plotOutput("testplot")),
             #and the data table  
             box(dataTableOutput('table')),
-            column(6,box(flexdashboard::gaugeOutput("DVGauge"),
-                         width=12,title="Data validity gauge",background ="green")
-                   )
-            )
+            box(gaugeOutput("DVGauge"),
+                width=6,title="Data validity gauge",background ="green"),
+            box(valueBoxOutput("NArows"),
+                width=4, title = "Number of rows with null value", background = "yellow"),
+            box(valueBoxOutput("OKrows"),
+                width=4, title = "Okay rows", background = "blue")
+            ) 
         )
+        
     
 # Define server logic
 server <- function(input, output) {
@@ -94,6 +96,15 @@ server <- function(input, output) {
               label = paste("% data w/o nulls in query"),
               gaugeSectors(success = c(90, 100), warning = c(60,90), danger = c(0, 60))
         )
+    })
+    #number of null rows
+    output$NArows <- renderValueBox({
+        partna <- nrow(newdata()[rowSums(is.na(newdata()))>0,])
+        valueBox(partna)
+    })
+    output$OKrows <- renderValueBox({
+        partok <- nrow(na.omit(newdata()))
+        valueBox(partok)
     })
 }
 

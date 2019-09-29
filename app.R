@@ -1,9 +1,10 @@
 #
 # punchlist 
 # 
+# better way to do datatable
 # data validity based on nulls throughout DF, not only for variables viewed
-# data omitNAs
 # break into tabs - scatterplot, validity, summary
+# state filter
 
 
 library(shiny)
@@ -24,10 +25,20 @@ ui <- dashboardPage(
         dashboardHeader(title = "County Level Opioid Data"),
         # Sidebar layout default for now 
         dashboardSidebar(
+            sidebarMenu(
+                menuItem("Dashboard", tabName = "dashTab", icon = icon("dashboard")),
+                menuItem("Omitted info", icon = icon("th"), tabName = "omitTab",
+                         badgeLabel = "watch", badgeColor = "yellow"),
+                menuItem("Summary info", icon = icon("th"), tabName = "summTab",
+                         badgeLabel = "Coming Soon", badgeColor = "red")
+            ),
+                
             #This is a range slider that allows you to choose which year(s) of data you are looking at
             sliderInput("years",
-                        label = "Include data from year(s):",
-                        min = 2013, max = 2017, value = c(2013,2017)
+                        label = "Year range for data:",
+                        min =2013, max = 2017, value = c(min,max)
+# min side of slider below only works if its on a whole year integer this way
+#                        min(as.integer(CountyData$year_num)), max = max(as.integer(CountyData$year_num)), value = c(min ,max)
                         ),
             #and this select box lets you choose the dependent variable
             selectInput("DepVar", label = h3("Choose Dependent Variable"), 
@@ -49,8 +60,12 @@ ui <- dashboardPage(
             #and clicking this button lets you see a table of the omitted results
             actionButton("omits", "See table of omitted results")
             ),
-        # Show a plot of the generated distribution
         dashboardBody(
+            tabItems(
+                tabItem(tabName = "dashTab", h2("Main Dashboard tab content")),
+                tabItem(tabName = "omitTab", h2("Null omitted tab content")),
+                tabItem(tabName = "summTab", h2("Summary info variable tab content"))
+                ),
             #This is the output for the scatterplot
             box(plotOutput("testplot")),
             #and the data table  
@@ -75,10 +90,8 @@ server <- function(input, output) {
     #I couldnt figure out how to make this work without putting the newdata line from above in here
     omitted <-eventReactive(input$omits,{
         newdata <- CountyData %>% filter(year_num %in% (input$years[1]:input$years[2]))
-        omitbetween <- newdata[rowSums(is.na(newdata))>0,]()
+        omitbetween <- newdata[rowSums(is.na(newdata))>0,]
         })  
-    #reactive expression for gauge bars
-#    partna <- reactive({nrow(omitted())*100/nrow(newdata())})
     #GGplot of the variables 
     output$testplot <- renderPlot({
         ggplot(newdata(), aes_string(x=input$IndVar,
